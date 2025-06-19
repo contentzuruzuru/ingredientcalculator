@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ingredient Calculator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">Recipe Ingredient Calculator</h1>
+        <div class="mb-5">
+            <label for="totalWeight" class="block text-gray-700 text-sm font-semibold mb-2">
+                Enter Total Weight (X) in Kilograms:
+            </label>
+            <input
+                type="number"
+                id="totalWeight"
+                class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 ease-in-out"
+                placeholder="e.g., 1.0 (for 1 kg)"
+                min="0"
+                step="0.01"
+            >
+        </div>
+        <div class="mb-6">
+            <label for="recipeType" class="block text-gray-700 text-sm font-semibold mb-2">
+                Select Recipe Type:
+            </label>
+            <div class="relative">
+                <select
+                    id="recipeType"
+                    class="block appearance-none w-full bg-white border border-gray-300 text-gray-700 py-3 px-4 pr-8 rounded-lg shadow-sm leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 ease-in-out"
+                >
+                    <option value="">-- Select --</option>
+                    <option value="chickenThigh">Chicken Thigh</option>
+                    <option value="chickenWing">Chicken Wing</option>
+                    <option value="chickenBreast">Chicken Breast</option>
+                    <option value="porkBelly">Pork Belly</option>
+                    <option value="porkNeck">Pork Neck</option>
+                    <option value="eggBrine">Egg Brine</option>
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                    <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                </div>
+            </div>
+        </div>
+        <button
+            id="calculateBtn"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition duration-200 ease-in-out shadow-md hover:shadow-lg transform hover:scale-105"
+        >
+            Calculate Ingredients
+        </button>
+        <div id="results" class="mt-8 p-4 bg-gray-50 border border-gray-200 rounded-lg hidden">
+            <h2 class="text-xl font-semibold text-gray-800 mb-3">Calculated Ingredients:</h2>
+            <ul id="ingredientList" class="list-disc list-inside text-gray-700"></ul>
+        </div>
+        <div id="messageBox" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50 hidden">
+            <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-sm">
+                <h3 id="messageTitle" class="text-xl font-semibold text-gray-800 mb-4"></h3>
+                <p id="messageContent" class="text-gray-700 mb-6"></p>
+                <button id="closeMessage" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const recipes = {
+            "chickenThigh": {
+                "Salt": 0.8,
+                "Tasty salt": 0.2,
+                "Mirin": 3,
+                "ZZ Kikoman": 3,
+                "Kombu": 0.5
+            },
+            "chickenWing": {
+                "Salt": 0.8,
+                "Tasty salt": 0.2,
+                "Mirin": 3,
+                "ZZ Kikoman": 3,
+                "Kombu": 0.5
+            },
+            "chickenBreast": {
+                "Salt": 0.8,
+                "Tasty salt": 0.2,
+                "Mirin": 3,
+                "ZZ Kikoman": 3,
+                "Kombu": 0.5
+            },
+            "porkBelly": {
+                "Tasty salt": 0.7,
+                "Honey": 1.5,
+                "Mirin": 3
+            },
+            "porkNeck": {
+                "Spicy shio koji": 4,
+                "Tasty salt": 0.7,
+                "Salt": 1,
+                "Sugar": 1.5,
+                "Kashmiri Chilli": 4,
+                "Garlic powder": 2,
+                "Mirin": 1.5
+            },
+            "eggBrine": {
+                "Salt": 1.3,
+                "Sugar": 3,
+                "ZZ Soy": 3,
+                "Mirin": 3,
+                "Kombu": 0.5
+            }
+        };
+        // DOM elements
+        const totalWeightInput = document.getElementById('totalWeight');
+        const recipeTypeSelect = document.getElementById('recipeType');
+        const calculateBtn = document.getElementById('calculateBtn');
+        const resultsDiv = document.getElementById('results');
+        const ingredientList = document.getElementById('ingredientList');
+        const messageBox = document.getElementById('messageBox');
+        const messageTitle = document.getElementById('messageTitle');
+        const messageContent = document.getElementById('messageContent');
+        const closeMessageBtn = document.getElementById('closeMessage');
+        function showMessageBox(title, message) {
+            messageTitle.textContent = title;
+            messageContent.textContent = message;
+            messageBox.classList.remove('hidden');
+        }
+        function hideMessageBox() {
+            messageBox.classList.add('hidden');
+        }
+        closeMessageBtn.addEventListener('click', hideMessageBox);
+        function calculateIngredients() {
+            let totalWeight = parseFloat(totalWeightInput.value);
+            const selectedRecipeType = recipeTypeSelect.value;
+            if (isNaN(totalWeight) || totalWeight <= 0) {
+                showMessageBox('Input Error', 'Please enter a valid positive number for Total Weight (X).');
+                return;
+            }
+            if (!selectedRecipeType) {
+                showMessageBox('Input Error', 'Please select a Recipe Type.');
+                return;
+            }
+            totalWeight *= 1000;
+            const selectedRecipe = recipes[selectedRecipeType];
+            ingredientList.innerHTML = '';
+            resultsDiv.classList.add('hidden');
+            if (selectedRecipe) {
+                for (const ingredient in selectedRecipe) {
+                    if (selectedRecipe.hasOwnProperty(ingredient)) {
+                        const percentage = selectedRecipe[ingredient];
+                        const grams = (percentage / 100) * totalWeight;
+                        const listItem = document.createElement('li');
+                        listItem.className = 'py-1 border-b border-gray-100 last:border-b-0';
+                        listItem.textContent = `${ingredient}: ${grams.toFixed(2)} grams (${percentage}%)`;
+                        ingredientList.appendChild(listItem);
+                    }
+                }
+                resultsDiv.classList.remove('hidden');
+            } else {
+                showMessageBox('Error', 'Selected recipe type not found.');
+            }
+        }
+        calculateBtn.addEventListener('click', calculateIngredients);
+    </script>
+</body>
+</html>
